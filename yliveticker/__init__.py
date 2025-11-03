@@ -49,7 +49,10 @@ class YLiveTicker:
         
         # Convert the Unix timestamp to a human-readable format
         timestamp_ms = self.yaticker.time
-        timestamp_str = datetime.fromtimestamp(timestamp_ms / 1000).strftime('%Y-%m-%d %H:%M:%S')
+        if timestamp_ms and timestamp_ms > 0:
+            timestamp_str = datetime.fromtimestamp(timestamp_ms / 1000).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            timestamp_str = "N/A"
         data = {
                 "id": self.yaticker.id,
                 "exchange": self.yaticker.exchange,
