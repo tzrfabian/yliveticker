@@ -1,6 +1,4 @@
-![Python package](https://github.com/yahoofinancelive/yliveticker/workflows/Python%20package/badge.svg)
-![Upload Python Package](https://github.com/yahoofinancelive/yliveticker/workflows/Upload%20Python%20Package/badge.svg)
-# Live from Yahoo Finance
+# Live Price from Yahoo Finance
 
 Get market data from Yahoo Finance websocket in near-real time.
 wss://streamer.finance.yahoo.com/
@@ -28,5 +26,66 @@ yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=[
     "BTC=X", "^GSPC", "^DJI", "^IXIC", "^RUT", "CL=F", "GC=F", "SI=F", "EURUSD=X", "^TNX", "^VIX", "GBPUSD=X", "JPY=X", "BTC-USD", "^CMC200", "^FTSE", "^N225"])
 ```
 
-**Note**
-*Check trading hours for your market if you don't observe any live metrics*
+### Fix Protobuf Version Issue
+
+The generated protobuf code is incompatible with protobuf 3.21+. You need to downgrade to a compatible version:
+
+```powershell
+python -m pip install --upgrade "protobuf>=3.11.0,<3.21"
+```
+
+Or run the batch file:
+```powershell
+.\fix_protobuf_version.bat
+```
+
+### Run the Example
+
+After fixing the protobuf version, run the example:
+
+```powershell
+python yliveticker/client_code.py
+```
+
+### Create Your Own Script
+
+Create a new Python file (e.g., `my_ticker.py`):
+
+```python
+import yliveticker
+
+def on_new_msg(ws, msg):
+    print(msg)
+
+yliveticker.YLiveTicker(
+    on_ticker=on_new_msg, 
+    ticker_names=["BTC-USD", "AAPL", "MSFT", "^GSPC"]
+)
+```
+
+Then run:
+```powershell
+python my_ticker.py
+```
+
+## Alternative Solutions
+
+If downgrading protobuf doesn't work, you can:
+
+1. **Regenerate the protobuf file** (requires `protoc` compiler):
+   ```powershell
+   protoc --python_out=. --proto_path=yliveticker yliveticker/yaticker.proto
+   ```
+
+2. **Use environment variable workaround** (slower but works):
+   ```powershell
+   $env:PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION="python"
+   python yliveticker/client_code.py
+   ```
+
+## Notes
+
+- The connection runs continuously until you stop it (Ctrl+C)
+- Data will only appear during trading hours for each market
+- The `on_ticker` callback receives a dictionary with fields like `id`, `price`, `changePercent`, `timestamp`, etc.
+- *Check trading hours for your market if you don't observe any live metrics*
