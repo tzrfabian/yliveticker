@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  yliveticker:
+    build: .
+    container_name: yliveticker
+    restart: unless-stopped
+    environment:
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+    # Optional: Mount for easy ticker configuration changes
+    # volumes:
+    #   - ./yliveticker/client_code.py:/app/yliveticker/client_code.py:ro
+    # Optional: Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+

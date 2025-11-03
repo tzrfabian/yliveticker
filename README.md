@@ -83,6 +83,35 @@ If downgrading protobuf doesn't work, you can:
    python yliveticker/client_code.py
    ```
 
+## Deployment
+
+Want to run this 24/7 in the cloud? Check out our deployment guides:
+
+### 🚀 Quick Deploy to Easypanel (Recommended)
+Deploy to your own VPS with Easypanel in just 5 minutes - only $5-10/month!
+
+**[→ Quick Start Guide (QUICKSTART.md)](QUICKSTART.md)**
+
+3 simple steps:
+1. Push to GitHub
+2. Create app in Easypanel
+3. Deploy!
+
+See detailed guide: **[EASYPANEL-DEPLOYMENT.md](EASYPANEL-DEPLOYMENT.md)**
+
+### 🐳 Run with Docker
+
+```bash
+# Build and run
+docker build -t yliveticker .
+docker run yliveticker
+
+# Or use Docker Compose
+docker-compose up
+```
+
+See all deployment options: **[README-DEPLOYMENT.md](README-DEPLOYMENT.md)**
+
 ## Notes
 
 - The connection runs continuously until you stop it (Ctrl+C)

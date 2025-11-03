@@ -1,0 +1,29 @@
+{
+  "name": "yliveticker",
+  "description": "Live market data from Yahoo Finance websocket",
+  "image": {
+    "type": "dockerfile",
+    "path": "Dockerfile"
+  },
+  "deploy": {
+    "replicas": 1,
+    "restartPolicy": "unless-stopped",
+    "resources": {
+      "limits": {
+        "memory": "256M",
+        "cpu": "0.5"
+      },
+      "reservations": {
+        "memory": "128M",
+        "cpu": "0.25"
+      }
+    }
+  },
+  "env": [
+    {
+      "key": "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION",
+      "value": "python"
+    }
+  ]
+}
+
