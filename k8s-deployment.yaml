@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yliveticker
+  labels:
+    app: yliveticker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yliveticker
+  template:
+    metadata:
+      labels:
+        app: yliveticker
+    spec:
+      containers:
+      - name: yliveticker
+        image: gcr.io/YOUR_PROJECT_ID/yliveticker:latest
+        env:
+        - name: PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION
+          value: "python"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        # Restart policy for persistent websocket connection
+        imagePullPolicy: Always
+      restartPolicy: Always
+---
+# Optional: Service for monitoring/health checks
+apiVersion: v1
+kind: Service
+metadata:
+  name: yliveticker-service
+spec:
+  selector:
+    app: yliveticker
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+
