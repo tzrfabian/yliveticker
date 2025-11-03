@@ -1,7 +1,7 @@
 import base64
 import json
 from .logger import writeline
-
+from datetime import datetime
 import websocket
 
 from .yaticker_pb2 import yaticker
@@ -46,12 +46,16 @@ class YLiveTicker:
     def on_message(self, ws, message):
         message_bytes = base64.b64decode(message)
         self.yaticker.ParseFromString(message_bytes)
+        
+        # Convert the Unix timestamp to a human-readable format
+        timestamp_ms = self.yaticker.time
+        timestamp_str = datetime.fromtimestamp(timestamp_ms / 1000).strftime('%Y-%m-%d %H:%M:%S')
         data = {
                 "id": self.yaticker.id,
                 "exchange": self.yaticker.exchange,
                 "quoteType": self.yaticker.quoteType,
                 "price": self.yaticker.price,
-                "timestamp": self.yaticker.time,
+                "timestamp": timestamp_str,
                 "marketHours": self.yaticker.marketHours,
                 "changePercent": self.yaticker.changePercent,
                 "dayVolume": self.yaticker.dayVolume,
