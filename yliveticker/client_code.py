@@ -57,23 +57,23 @@ YLiveTicker(
     on_close=on_close,
     ticker_names=[
         "EURUSD=X",
-        "JPY=X",
+        "JPY=X", # USDJPY
         "GBPUSD=X",
-        "CHF=X",
+        "CHF=X", # USDCHF
         "AUDUSD=X",
         "NZDUSD=X",
-        "CAD=X",
+        "CAD=X", # USDCAD
         "GBPJPY=X",
         "CHFJPY=X",
         "AUDJPY=X",
         "EURGBP=X",
-        "GC=F",
-        "SI=F",
-        "^DJI",
-        "^NDX",
-        "^GSPC",
-        "CL=F",
-        "^N225",
-        "^HSI"
+        "GC=F", # gold
+        "SI=F", # silver
+        "^DJI", # Dow Jones
+        "^NDX", # Nasdaq
+        "^GSPC", # S&P 500
+        "CL=F", # crude oil
+        "^N225", # Nikkei 225
+        "^HSI", # Hang Seng Index
     ],
 )
