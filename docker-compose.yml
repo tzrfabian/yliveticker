@@ -5,11 +5,13 @@ services:
     build: .
     container_name: yliveticker
     restart: unless-stopped
+    ports:
+      - "8000:8000"  # Expose websocket server port
     environment:
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
     # Optional: Mount for easy ticker configuration changes
     # volumes:
-    #   - ./yliveticker/client_code.py:/app/yliveticker/client_code.py:ro
+    #   - ./server.py:/app/server.py:ro
     # Optional: Resource limits
     deploy:
       resources:

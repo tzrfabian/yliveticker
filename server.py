@@ -1,15 +1,43 @@
 import asyncio
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 import yliveticker
 import uvicorn
 
 app = FastAPI()
+
+# Enable CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with your frontend domain(s)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 clients = set()
 event_loop = None
 
+# Health check endpoint
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "service": "yliveticker",
+        "websocket_endpoint": "/ws",
+        "connected_clients": len(clients)
+    }
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "connected_clients": len(clients)}
+
 # Track which tickers we've seen (for console output)
 seen_tickers = set()
+
+# Track previous prices for each ticker to calculate percent change
+previous_prices = {}
 
 # Quote type mapping for readability
 QUOTE_TYPE_MAP = {
@@ -23,11 +51,14 @@ QUOTE_TYPE_MAP = {
 async def ws_endpoint(ws: WebSocket):
     await ws.accept()
     clients.add(ws)
+    print(f"[WebSocket] Client connected. Total clients: {len(clients)}")
     try:
         while True:
+            # Keep connection alive - receive any messages (can be used for ping/pong)
             await ws.receive_text()
     except WebSocketDisconnect:
         clients.remove(ws)
+        print(f"[WebSocket] Client disconnected. Total clients: {len(clients)}")
 
 def on_ticker(ws, msg):
     # Print to console like client_code.py does with OHLC data
@@ -41,8 +72,25 @@ def on_ticker(ws, msg):
     open_price = msg.get("open")
     high_price = msg.get("high")
     low_price = msg.get("low")
-    close_price = msg.get("close")
+    close_price = msg.get("close") or price  # Use current price if close is None
     volume = msg.get("dayVolume")
+    
+    # Calculate absolute value change from previous close price
+    price_change_value = None
+    price_change_direction = None
+    
+    if ticker_id in previous_prices and previous_prices[ticker_id] is not None:
+        prev_price = previous_prices[ticker_id]
+        if prev_price > 0 and close_price and close_price > 0:
+            price_change_value = close_price - prev_price
+            price_change_direction = "+" if price_change_value >= 0 else "-"
+            # Add to message for frontend
+            msg["priceChangeDirection"] = price_change_direction
+            msg["priceChange"] = round(price_change_value, 6)
+    
+    # Update previous price for next calculation
+    if close_price and close_price > 0:
+        previous_prices[ticker_id] = close_price
     
     # Track seen tickers
     if ticker_id not in seen_tickers:
@@ -61,6 +109,12 @@ def on_ticker(ws, msg):
         ohlc_parts.append(f"Low: {low_price}")
     if close_price is not None:
         ohlc_parts.append(f"Close: {close_price}")
+    # Add absolute value change from previous close price
+    if price_change_value is not None:
+        # Format with appropriate precision (up to 6 decimal places, strip trailing zeros)
+        change_abs = abs(price_change_value)
+        change_str = f"{price_change_direction}{change_abs:.6f}".rstrip('0').rstrip('.')
+        ohlc_parts.append(f"Change: {change_str}")
     # Only show volume if it's greater than 0 and not a currency pair
     # Currencies don't have volume in traditional sense
     if volume is not None and volume > 0 and quote_type != 14:  # 14 = CURRENCY
@@ -75,7 +129,7 @@ def on_ticker(ws, msg):
     else:
         print(f"[{ticker_id}] {quote_type_name} | Price: {price} | {time_str}")
     
-    # Broadcast the message to all WebSocket clients
+    # Broadcast the message to all WebSocket clients (with added price change data)
     data = json.dumps(msg)
     if event_loop and clients:
         for client in list(clients):

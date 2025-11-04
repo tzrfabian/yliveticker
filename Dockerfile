@@ -10,6 +10,7 @@ COPY README.md .
 
 # Copy the application code
 COPY yliveticker/ ./yliveticker/
+COPY server.py ./server.py
 
 # Install the package and its dependencies
 RUN pip install --no-cache-dir -e .
@@ -17,6 +18,9 @@ RUN pip install --no-cache-dir -e .
 # Set environment variable for protobuf compatibility
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
-# Default command runs the client code
-CMD ["python", "-u", "yliveticker/client_code.py"]
+# Expose the websocket server port
+EXPOSE 8000
+
+# Default command runs the websocket server
+CMD ["python", "-u", "server.py"]
 

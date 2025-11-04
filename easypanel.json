@@ -8,6 +8,12 @@
   "deploy": {
     "replicas": 1,
     "restartPolicy": "unless-stopped",
+    "ports": [
+      {
+        "containerPort": 8000,
+        "protocol": "tcp"
+      }
+    ],
     "resources": {
       "limits": {
         "memory": "256M",

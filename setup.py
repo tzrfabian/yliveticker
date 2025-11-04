@@ -18,6 +18,11 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=['protobuf>=3.11.0,<3.21', 'websocket-client>=0.57.0'],
+    install_requires=[
+        'protobuf>=3.11.0,<3.21',
+        'websocket-client>=0.57.0',
+        'fastapi>=0.100.0',
+        'uvicorn[standard]>=0.23.0'
+    ],
     python_requires='!=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*'
 )
