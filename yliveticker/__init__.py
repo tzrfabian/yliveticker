@@ -89,6 +89,66 @@ class YLiveTicker:
         if decimal_places is None:
             return value
         return round(value, decimal_places)
+    
+    def get_spread(self, ticker_id, quote_type, decimal_places):
+        """
+        Calculate spread based on ticker and quote type.
+        Returns spread value in price units.
+        
+        Rules:
+        - EURUSD, GBPUSD, AUDUSD, NZDUSD, USDJPY, USDCHF, USDCAD: 3 pip
+        - GBPJPY: 7 pip
+        - EURJPY, CHFJPY, AUDJPY, EURGBP: 4 pip
+        - GOLD (GC=F): USD 0.40
+        - Silver (SI=F): USD 0.05
+        - Crude Oil (CL=F): USD 0.05
+        - Nikkei (^N225): 5 points
+        - Hang Seng (^HSI): 5 points
+        - Dow Jones (^DJI): 10 points
+        - S&P 500 (^GSPC): 1 point
+        - Nasdaq (^NDX): 2 points
+        """
+        ticker_upper = ticker_id.upper()
+        
+        # Currency pairs - spread in pips
+        if ticker_upper in ["EURUSD=X", "GBPUSD=X", "AUDUSD=X", "NZDUSD=X", "JPY=X", "CHF=X", "CAD=X"]:
+            # 3 pip spread
+            if decimal_places == 5:  # USD/GBP/CHF/CAD pairs
+                return 0.0003  # 3 pips for 5 decimal places
+            elif decimal_places == 3:  # JPY pairs
+                return 0.003  # 3 pips for 3 decimal places
+        elif ticker_upper == "GBPJPY=X":
+            # 7 pip spread
+            return 0.007  # 7 pips for 3 decimal places
+        elif ticker_upper in ["EURJPY=X", "CHFJPY=X", "AUDJPY=X", "EURGBP=X"]:
+            # 4 pip spread
+            if ticker_upper == "EURGBP=X":
+                return 0.0004  # 4 pips for 5 decimal places
+            else:
+                return 0.004  # 4 pips for 3 decimal places
+        
+        # Commodities
+        elif ticker_upper == "GC=F":  # Gold
+            return 0.40  # USD 0.40
+        elif ticker_upper == "SI=F":  # Silver
+            return 0.05  # USD 0.05
+        elif ticker_upper == "CL=F":  # Crude Oil
+            return 0.05  # USD 0.05
+        
+        # Indices
+        elif ticker_upper == "^N225":  # Nikkei
+            return 5.0  # 5 points
+        elif ticker_upper == "^HSI":  # Hang Seng
+            return 5.0  # 5 points
+        elif ticker_upper == "^DJI":  # Dow Jones
+            return 10.0  # 10 points
+        elif ticker_upper == "^GSPC":  # S&P 500
+            return 1.0  # 1 point
+        elif ticker_upper == "^NDX":  # Nasdaq
+            return 2.0  # 2 points
+        
+        # Default: no spread
+        return 0.0
 
     def on_message(self, ws, message):
         message_bytes = base64.b64decode(message)
@@ -156,12 +216,24 @@ class YLiveTicker:
         low_price = cached["low"] if cached["low"] is not None else (self.yaticker.dayLow if self.yaticker.dayLow != 0.0 else None)
         # prev_close = cached["previousClose"] if cached["previousClose"] is not None else (self.yaticker.previousClose if self.yaticker.previousClose != 0.0 else None)
         
+        # Calculate bid and ask prices with spread
+        close_formatted = self.format_price(current_price, decimal_places)
+        spread = self.get_spread(ticker_id, self.yaticker.quoteType, decimal_places)
+        
+        # Bid price = close price + spread
+        # Ask price = close price
+        bid_price = close_formatted + spread if close_formatted is not None else None
+        ask_price = close_formatted
+        
+        # Format bid price with appropriate decimal places
+        bid_price = self.format_price(bid_price, decimal_places) if bid_price is not None else None
+        
         # Format all price-related fields with appropriate decimal places
         data = {
                 "id": ticker_id,
                 "exchange": self.yaticker.exchange,
                 "quoteType": self.yaticker.quoteType,
-                "price": self.format_price(current_price, decimal_places),
+                "price": close_formatted,
                 "timestamp": timestamp_str,
                 "marketHours": self.yaticker.marketHours,
                 "changePercent": self.yaticker.changePercent,
@@ -172,7 +244,10 @@ class YLiveTicker:
                 "open": self.format_price(open_price, decimal_places),
                 "high": self.format_price(high_price, decimal_places),
                 "low": self.format_price(low_price, decimal_places),
-                "close": self.format_price(current_price, decimal_places)  # Current price is the last/close price
+                "close": close_formatted,  # Current price is the last/close price
+                # Bid and Ask prices
+                "bid": bid_price,
+                "ask": ask_price
             }
         
         if self.on_ticker is None:

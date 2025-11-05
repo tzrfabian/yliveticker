@@ -68,11 +68,13 @@ def on_ticker(ws, msg):
     timestamp = msg.get("timestamp", "N/A")
     quote_type_name = QUOTE_TYPE_MAP.get(quote_type, f"TYPE_{quote_type}")
     
-    # Get OHLC data and volume
+    # Get OHLC data, bid/ask, and volume
     open_price = msg.get("open")
     high_price = msg.get("high")
     low_price = msg.get("low")
     close_price = msg.get("close") or price  # Use current price if close is None
+    bid_price = msg.get("bid")
+    ask_price = msg.get("ask")
     volume = msg.get("dayVolume")
     
     # Calculate absolute value change from previous close price
@@ -109,6 +111,11 @@ def on_ticker(ws, msg):
         ohlc_parts.append(f"Low: {low_price}")
     if close_price is not None:
         ohlc_parts.append(f"Close: {close_price}")
+    # Add bid and ask prices
+    if bid_price is not None:
+        ohlc_parts.append(f"Bid: {bid_price}")
+    if ask_price is not None:
+        ohlc_parts.append(f"Ask: {ask_price}")
     # Add absolute value change from previous close price
     if price_change_value is not None:
         # Format with appropriate precision (up to 6 decimal places, strip trailing zeros)
