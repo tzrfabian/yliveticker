@@ -154,7 +154,7 @@ class YLiveTicker:
         open_price = cached["open"] if cached["open"] is not None else (self.yaticker.openPrice if self.yaticker.openPrice != 0.0 else None)
         high_price = cached["high"] if cached["high"] is not None else (self.yaticker.dayHigh if self.yaticker.dayHigh != 0.0 else None)
         low_price = cached["low"] if cached["low"] is not None else (self.yaticker.dayLow if self.yaticker.dayLow != 0.0 else None)
-        prev_close = cached["previousClose"] if cached["previousClose"] is not None else (self.yaticker.previousClose if self.yaticker.previousClose != 0.0 else None)
+        # prev_close = cached["previousClose"] if cached["previousClose"] is not None else (self.yaticker.previousClose if self.yaticker.previousClose != 0.0 else None)
         
         # Format all price-related fields with appropriate decimal places
         data = {
@@ -172,8 +172,7 @@ class YLiveTicker:
                 "open": self.format_price(open_price, decimal_places),
                 "high": self.format_price(high_price, decimal_places),
                 "low": self.format_price(low_price, decimal_places),
-                "close": self.format_price(current_price, decimal_places),  # Current price is the last/close price
-                "previousClose": self.format_price(prev_close, decimal_places)
+                "close": self.format_price(current_price, decimal_places)  # Current price is the last/close price
             }
         
         if self.on_ticker is None:
